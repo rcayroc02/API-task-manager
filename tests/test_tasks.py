@@ -164,9 +164,7 @@ def test_list_tasks_order_by_due_date_puts_tasks_without_date_last(client, auth_
 def test_patch_updates_only_sent_fields(client, auth_headers):
     task = create_task(client, auth_headers, title="Original", description="keep me")
 
-    response = client.patch(
-        f"/tasks/{task['id']}", json={"status": "done"}, headers=auth_headers
-    )
+    response = client.patch(f"/tasks/{task['id']}", json={"status": "done"}, headers=auth_headers)
 
     assert response.status_code == 200
     body = response.json()
@@ -242,9 +240,7 @@ def test_user_cannot_read_another_users_task(client, auth_headers, other_headers
 def test_user_cannot_update_another_users_task(client, auth_headers, other_headers):
     task = create_task(client, auth_headers, title="Original")
 
-    response = client.patch(
-        f"/tasks/{task['id']}", json={"title": "Hacked"}, headers=other_headers
-    )
+    response = client.patch(f"/tasks/{task['id']}", json={"title": "Hacked"}, headers=other_headers)
 
     assert response.status_code == 404
     unchanged = client.get(f"/tasks/{task['id']}", headers=auth_headers).json()

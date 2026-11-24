@@ -30,7 +30,7 @@ def register_user(db: Session, data: UserRegister) -> User:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Ya existe un usuario registrado con este correo",
-        )
+        ) from None
     db.refresh(user)
     return user
 

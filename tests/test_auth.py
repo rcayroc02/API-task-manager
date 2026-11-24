@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 
@@ -141,7 +141,7 @@ def test_me_with_garbage_token_returns_401(client):
 def test_me_with_expired_token_returns_401(client):
     client.post("/auth/register", json=CREDENTIALS)
     expired = jwt.encode(
-        {"sub": "1", "exp": datetime.now(timezone.utc) - timedelta(minutes=1)},
+        {"sub": "1", "exp": datetime.now(UTC) - timedelta(minutes=1)},
         settings.SECRET_KEY,
         algorithm=ALGORITHM,
     )

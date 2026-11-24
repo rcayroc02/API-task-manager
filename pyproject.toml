@@ -8,3 +8,21 @@ source = ["app"]
 
 [tool.coverage.report]
 show_missing = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI usa Depends() y Query() como valores por defecto; no es un error.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
+
+[tool.ruff.lint.per-file-ignores]
+# Estas variables de entorno deben fijarse antes de importar la app.
+"tests/conftest.py" = ["E402"]
+# Alembic exige imports después de la configuración.
+"alembic/env.py" = ["E402", "F401"]

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 
@@ -17,7 +17,7 @@ def _token(payload: dict, key: str = settings.SECRET_KEY) -> str:
 
 
 def _future() -> datetime:
-    return datetime.now(timezone.utc) + timedelta(minutes=5)
+    return datetime.now(UTC) + timedelta(minutes=5)
 
 
 def test_hash_is_not_plaintext_and_verifies():

@@ -18,9 +18,7 @@ def create_task(db: Session, owner: User, data: TaskCreate) -> Task:
 
 
 def get_task(db: Session, owner: User, task_id: int) -> Task:
-    task = db.scalar(
-        select(Task).where(Task.id == task_id, Task.owner_id == owner.id)
-    )
+    task = db.scalar(select(Task).where(Task.id == task_id, Task.owner_id == owner.id))
     if task is None:
         raise TaskNotFoundError
     return task
@@ -47,9 +45,7 @@ def list_tasks(
     if order_by == "due_date":
         ordering = ordering.nulls_last()
 
-    tasks = db.scalars(
-        query.order_by(ordering, Task.id).limit(limit).offset(offset)
-    ).all()
+    tasks = db.scalars(query.order_by(ordering, Task.id).limit(limit).offset(offset)).all()
     return list(tasks), total
 
 
