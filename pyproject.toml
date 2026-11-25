@@ -26,3 +26,4 @@ extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
 "tests/conftest.py" = ["E402"]
 # Alembic exige imports después de la configuración.
 "alembic/env.py" = ["E402", "F401"]
+      
