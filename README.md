@@ -76,42 +76,6 @@ The API will be available at <http://localhost:8000/docs>. Migrations are applie
 
 > The database credentials in `docker-compose.yml` are for local development only.
 
-### Option 2: Local development
-
-Requirements: Python 3.12+ and Docker (for PostgreSQL).
-
-```bash
-# Create and activate an environment (conda shown; venv works too)
-conda create -n task-api python=3.12 -y
-conda activate task-api
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure environment variables
-cp .env.example .env
-
-# Start only the database
-docker compose up -d db
-
-# Apply migrations
-alembic upgrade head
-
-# Run the API
-uvicorn app.main:app --reload
-```
-
-Open <http://127.0.0.1:8000/docs>.
-
-### Environment variables
-
-| Variable | Description | Example |
-|---|---|---|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql+psycopg://postgres:postgres@localhost:5432/task_api` |
-| `SECRET_KEY` | Key used to sign JWT tokens | output of `python -c "import secrets; print(secrets.token_hex(32))"` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | Token lifetime | `30` |
-
-URLs starting with `postgres://` or `postgresql://` (as provided by many hosting platforms) are automatically converted to use the `psycopg` driver.
 
 ## API overview
 
@@ -139,47 +103,8 @@ URLs starting with `postgres://` or `postgresql://` (as provided by many hosting
 
 When ordering by `due_date`, tasks without a due date are placed last.
 
-### Example requests
 
-```bash
-# Register
-curl -X POST http://localhost:8000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email": "alice@example.com", "password": "password123"}'
 
-# Log in and store the token
-TOKEN=$(curl -s -X POST http://localhost:8000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "alice@example.com", "password": "password123"}' \
-  | python -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
-
-# Create a task
-curl -X POST http://localhost:8000/tasks \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Learn FastAPI", "due_date": "2026-12-01T12:00:00Z"}'
-
-# List pending tasks, sorted by due date
-curl "http://localhost:8000/tasks?status=pending&order_by=due_date" \
-  -H "Authorization: Bearer $TOKEN"
-
-# Mark a task as done
-curl -X PATCH http://localhost:8000/tasks/1 \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"status": "done"}'
-```
-
-On Windows PowerShell, the easiest way to try the API is through Swagger UI at `/docs`: log in, click **Authorize**, and paste the token.
-
-### Error responses
-
-| Status | Meaning |
-|---|---|
-| `401` | Missing, invalid or expired token; wrong credentials |
-| `404` | Task not found (also returned for tasks that belong to another user) |
-| `409` | Email already registered |
-| `422` | Invalid input (short password, empty title, unknown status, null in a required field) |
 
 ## Running tests
 
@@ -210,27 +135,4 @@ On every push to `main` and on every pull request, GitHub Actions:
 5. Runs the tests with a minimum coverage threshold
 6. Builds the Docker image
 
-## Design decisions
 
-- **Layered architecture.** Separating routers, services and models keeps each part small, testable and easy to change.
-- **404 instead of 403 for other users' tasks.** Responding the same way as for a nonexistent task avoids revealing which task IDs exist.
-- **Same error for unknown email and wrong password.** Login does not reveal which emails are registered.
-- **Argon2 for passwords.** It is the current recommended algorithm, with automatic salting.
-- **Alembic from day one.** The schema is versioned and reproducible, and CI verifies that migrations match the models.
-- **Stable pagination.** The list is ordered with the task `id` as a tiebreaker, so pages never repeat or skip rows.
-- **SQLite for tests, PostgreSQL for migrations in CI.** Tests stay fast and self-contained, while migrations are still validated against the real engine.
-- **Configuration through environment variables.** No secrets live in the repository.
-
-## Possible improvements
-
-- Refresh tokens and logout
-- Rate limiting on authentication endpoints
-- Task categories or tags (many-to-many)
-- Structured logging
-- Async endpoints with SQLAlchemy async
-- Separate `requirements-dev.txt` to keep the Docker image smaller
-- Run the full test suite against PostgreSQL in CI
-
-## License
-
-This project is for learning and portfolio purposes.
